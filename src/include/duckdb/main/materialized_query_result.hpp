@@ -14,6 +14,50 @@
 
 namespace duckdb {
 
+// Base class for polymorphism
+struct Base {
+    virtual ~Base() {} // Virtual destructor for proper cleanup of derived objects
+};
+
+// Derived class for integers
+struct IntData : public Base {
+    int value;
+    explicit IntData(int val) : value(val) {}
+};
+
+struct UIntData : public Base {
+    uint32_t value;
+    explicit UIntData(uint32_t val) : value(val) {}
+};
+
+struct BigIntData : public Base {
+    int64_t value;
+    explicit BigIntData(int64_t val) : value(val) {}
+};
+
+struct UBigIntData : public Base {
+    uint64_t value;
+    explicit UBigIntData(uint64_t val) : value(val) {}
+};
+
+// Derived class for doubles
+struct DoubleData : public Base {
+    double value;
+    explicit DoubleData(double val) : value(val) {}
+};
+
+// Derived class for strings
+struct StringData : public Base {
+    std::string value;
+    explicit StringData(std::string val) : value(std::move(val)) {}
+};
+
+// Derived class for booleans
+struct BoolData : public Base {
+    bool value;
+    explicit BoolData(bool val) : value(val) {}
+};
+
 class ClientContext;
 
 class MaterializedQueryResult : public QueryResult {
@@ -55,6 +99,9 @@ public:
 
 	//! Takes ownership of the collection, 'collection' is null after this operation
 	unique_ptr<ColumnDataCollection> TakeCollection();
+
+	// Function to get all the contents of the column
+	DUCKDB_API std::vector<std::vector<unique_ptr<Base>>> getContents();
 
 private:
 	unique_ptr<ColumnDataCollection> collection;

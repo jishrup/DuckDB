@@ -106,4 +106,84 @@ unique_ptr<DataChunk> MaterializedQueryResult::FetchRaw() {
 	return result;
 }
 
+std::vector<std::vector<unique_ptr<Base>>> MaterializedQueryResult::getContents() {
+    std::vector<std::vector<unique_ptr<Base>>> overallResult;
+
+    if (!success) {
+        return overallResult; // Return an empty result if the query was unsuccessful
+    }
+
+    auto &coll = Collection();
+    overallResult.reserve(coll.Count()); // Reserve space for the number of rows in advance
+
+    // Iterate over each row in the collection
+    for (auto &row : coll.Rows()) {
+        std::vector<unique_ptr<Base>> dataVector;
+        dataVector.reserve(coll.ColumnCount()); // Reserve space for the number of columns in each row
+
+        // Iterate over each column in the row
+        for (idx_t col_idx = 0; col_idx < coll.ColumnCount(); col_idx++) {
+            auto val = row.GetValue(col_idx);
+            if (!val.IsNull()) {
+                // Process based on the column type
+                switch (val.type().id()) {
+                    case LogicalTypeId::BOOLEAN: {
+                        auto native_bool = val.GetValue<bool>();
+                        dataVector.push_back(make_uniq<duckdb::BoolData>(native_bool));
+                        break;
+                    }
+                    case LogicalTypeId::BIGINT: {
+                        auto native_bigint = val.GetValue<int64_t>();
+                        dataVector.push_back(make_uniq<duckdb::BigIntData>(native_bigint));
+                        break;
+                    }
+                    case LogicalTypeId::UBIGINT: {
+                        auto native_ubigint = val.GetValue<uint64_t>();
+                        dataVector.push_back(make_uniq<duckdb::UBigIntData>(native_ubigint));
+                        break;
+                    }
+                    case LogicalTypeId::INTEGER:
+                    case LogicalTypeId::SMALLINT:
+                    case LogicalTypeId::TINYINT:
+                    case LogicalTypeId::USMALLINT:
+                    case LogicalTypeId::UTINYINT: {
+                        auto native_int = val.GetValue<int>();
+                        dataVector.push_back(make_uniq<duckdb::IntData>(native_int));
+                        break;
+                    }
+                    case LogicalTypeId::UINTEGER: {
+                        auto native_uint = val.GetValue<uint32_t>();
+                        dataVector.push_back(make_uniq<duckdb::UIntData>(native_uint));
+                        break;
+                    }
+                    case LogicalTypeId::DOUBLE:
+                    case LogicalTypeId::FLOAT:
+                    case LogicalTypeId::DECIMAL: {
+                        auto native_double = val.GetValue<double>();
+                        dataVector.push_back(make_uniq<duckdb::DoubleData>(native_double));
+                        break;
+                    }
+                    case LogicalTypeId::VARCHAR: {
+                        auto native_string = val.GetValue<std::string>();
+                        dataVector.push_back(make_uniq<duckdb::StringData>(native_string));
+                        break;
+                    }
+                    default:
+                        // Handle unsupported or custom types as strings
+                        auto native_string = val.ToString();
+                        dataVector.push_back(make_uniq<duckdb::StringData>(native_string));
+                        break;
+                }
+            } else {
+                // Handle nulls if necessary (e.g., skip or add a placeholder)
+                dataVector.push_back(nullptr);
+            }
+        }
+        overallResult.push_back(std::move(dataVector));
+    }
+
+    return overallResult;
+}
+
+
 } // namespace duckdb
