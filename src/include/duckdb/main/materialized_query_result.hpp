@@ -22,40 +22,47 @@ struct Base {
 // Derived class for integers
 struct IntData : public Base {
     int value;
-    explicit IntData(int val) : value(val) {}
+		int id;
+    explicit IntData(int val) : value(val) {id = 13;}
 };
 
 struct UIntData : public Base {
     uint32_t value;
-    explicit UIntData(uint32_t val) : value(val) {}
+		int id;
+    explicit UIntData(uint32_t val) : value(val) {id = 30;}
 };
 
 struct BigIntData : public Base {
     int64_t value;
-    explicit BigIntData(int64_t val) : value(val) {}
+		int id;
+    explicit BigIntData(int64_t val) : value(val) {id = 14;}
 };
 
 struct UBigIntData : public Base {
     uint64_t value;
-    explicit UBigIntData(uint64_t val) : value(val) {}
+		int id;
+    explicit UBigIntData(uint64_t val) : value(val) {id = 31;}
 };
 
 // Derived class for doubles
 struct DoubleData : public Base {
     double value;
-    explicit DoubleData(double val) : value(val) {}
+		int id;
+    explicit DoubleData(double val) : value(val) {id = 23;}
 };
 
 // Derived class for strings
 struct StringData : public Base {
     std::string value;
-    explicit StringData(std::string val) : value(std::move(val)) {}
+		int id;
+    explicit StringData(std::string val) : value(std::move(val)) {id = 25;}
 };
 
 // Derived class for booleans
 struct BoolData : public Base {
     bool value;
-    explicit BoolData(bool val) : value(val) {}
+		int id;
+    explicit BoolData(bool val) : value(val) {id = 13;}
 };
 
 class ClientContext;
